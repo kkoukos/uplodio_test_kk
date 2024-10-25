@@ -1,101 +1,135 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
+import { cn } from "@/utils/cn"; // Import your cn utility if needed
+import { generateMatchingGradient } from "@/utils/colorGen";
+import {
+  Email,
+  Female,
+  LocationCity,
+  Male,
+  Phone,
+  Place,
+} from "@mui/icons-material";
+import { Button } from "@/components/ui/button";
+import { Toaster, toast } from "sonner";
+import GenderSelector from "@/components/ui/GenderSelector";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [user, setUser] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [gender, setGender] = useState("");
+  const [gradient, setGradient] = useState(
+    "bg-gradient-to-r from-[#9400D3] to-[#4B0082]"
+  );
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  async function fetchData() {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `http://127.0.0.1:5000/user?gender=${gender}`
+      );
+      const data = await response.json();
+      setLoading(false);
+      if (data && data.results.length > 0) {
+        setUser(data.results[0]);
+        setGradient(generateMatchingGradient()); // Update gradient on data fetch
+      }
+      console.log(data.results[0]);
+    } catch (e) {
+      console.error("API error:", e.message);
+    }
+  }
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        toast("Copied to clipboard.");
+      })
+      .catch((err) => {
+        console.error("Failed to copy: ", err);
+      });
+  };
+
+  return (
+    <div className="flex items-center justify-center h-screen w-screen overflow-auto bg-white  flex-col gap-4">
+      <Toaster />
+      <div
+        className={`h-[400px] w-[450px] px-2 border border-gray-300 rounded-xl  flex flex-col items-center pt-2 overflow-auto shadow-lg text-black`}
+      >
+        {loading && (
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="loader"></div>
+          </div>
+        )}
+        {!loading && (
+          <>
+            <div
+              className={cn(
+                "w-full h-40 rounded-lg flex justify-start items-center mb-10"
+              )}
+              style={{ background: gradient }} // Apply the gradient as an inline style
+            >
+              <img
+                src={user.picture.large}
+                className="rounded-full h-32 w-32 border-[6px] border-white mt-40  ml-6"
+              ></img>
+              <div className="w-1/4 flex  justify-end items-start text-lg pt-2 gap-2 mt-[150px]  ml-[140px]">
+                <Button size="icon" onClick={() => copyToClipboard(user.email)}>
+                  <Email />
+                </Button>
+                <Button size="icon" onClick={() => copyToClipboard(user.phone)}>
+                  <Phone />
+                </Button>
+              </div>
+            </div>
+            <div className="w-full flex justify-between pt-6 px-8">
+              <div className="w-full flex flex-col justify-center items-start">
+                {" "}
+                <div className=" w-full  font-semibold text-lg flex  gap-2 text-gray-800 items-center">
+                  <p className="text-xl pt-1">
+                    {user.name.title} {user.name.first} {user.name.last}{" "}
+                    <span className="text-gray-600 font-medium">
+                      {user.dob.age}
+                    </span>
+                    <span
+                      className={`fi fi-${user.nat.toLowerCase()} text-lg ml-2`}
+                    ></span>
+                  </p>
+                </div>
+                <div className="w-full text-lg text-gray-500  flex flex-col ">
+                  <span className="text-gray-400 text-md border-b border-gray-200 tracking-wide  cursor-pointer hover:text-gray-600 hover:border-gray-400 w-fit">
+                    @{user.login.username}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4  w-full h-full flex gap-2 px-8">
+              <div className="w-full h-[90%] font-semibold text-md text-gray-500 items-start flex flex-col">
+                <div className="w-full flex items-center">
+                  <Place />
+                  <span className="pt-1">
+                    {user.location.street.name} {user.location.street.number},{" "}
+                    {user.location.postcode}, {user.location.city}{" "}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+      <div className="w-[450px] pt-12 flex justify-between items-center">
+        <GenderSelector selectedGender={gender} setSelectedGender={setGender} />
+        <Button size="lg" onClick={() => fetchData()}>
+          Fetch
+        </Button>
+      </div>
     </div>
   );
 }
